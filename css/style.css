@@ -1,0 +1,111 @@
+:root {
+    --cellwidth: calc(100%/7);
+
+    --open-bg: white;
+    --open-fg: black;
+    
+    --booked-bg: #dddddd;
+    --booked-fg: black;
+
+    --heading-bg: black;
+    --heading-fg: white;
+
+    --over-bg: #cccccc;
+    --over-fg: black;
+    
+    --selected-bg: red;
+    --selected-fg: white;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.paid {
+}
+
+.not-paid {
+}
+
+.dbs-schedule {
+    margin: 1rem 0;
+}
+
+.dbs-schedule.frontend {
+    padding: 0 1rem;
+}
+
+.dbs-schedule-errors {
+    color: red;
+}
+
+.dbs-schedule-fields {
+    margin-bottom: 1rem;
+}
+
+.dbs-schedule-fields div {
+    display: inline-block;
+}
+
+.dbs-schedule-fields label {
+    font-size: 600;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+.dbs-schedule-fields input {
+    vertical-align: middle;
+    margin-right: 2rem !important;
+}
+
+.dbs-schedule-providers {
+    display: flex;
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+}
+
+.dbs-schedule-provider {
+    flex: 1;
+    margin: 0 0.25rem;
+}
+
+.dbs-schedule-provider.selected {
+}
+
+.dbs-schedule-provider-heading {
+    background-color: black;
+    color: white;
+    padding: 0.5rem;
+}
+
+.dbs-schedule-provider-content {
+    margin-top: -0.25rem;
+}
+
+.dbs-timeslot {
+    background-color: var(--gray);
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+}
+
+.dbs-timeslot.booked {
+    background-color: var(--booked-bg);
+    color: var(--booked-fg);
+}
+
+.dbs-timeslot.open {
+    background-color: var(--open-bg);
+    color: var(--open-fg);
+}
+
+.dbs-timeslot.over {
+    background-color: var(--over-bg);
+    color: var(--over-fg);
+}
+
+.dbs-timeslot.selected {
+    background-color: var(--selected-bg);
+    color: var(--selected-fg);
+}
+
+
