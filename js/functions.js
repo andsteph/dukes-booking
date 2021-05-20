@@ -5,12 +5,49 @@
 
         // reload schedule when date is changed -----------
         $('#dbs-schedule-date').on('change', function () {
-            window.location.href = php_vars.booking_url + '/' + $(this).val();
+            if (php_vars.is_admin) {
+                window.location.href = php_vars.admin_home + '&date=' + $(this).val();
+            } else {
+                window.location.href = php_vars.booking_url + '/' + $(this).val();
+            }
         });
+
+
+        function getEmail() {
+
+        }
+
+        $('#dbs-email-save').on('click', function () {
+            var data = {
+                'action': 'validate_email',
+                'email': $('#dbs-email-input').val()
+            };
+            $.post(php_vars.ajax_url, data, function (response) {
+                console.log(response);
+            });
+        });
+
+
+        function getPayment() {
+            $('.dbs-payment-form').modal({
+                fadeDuration: 250
+            });
+            $('#dbs-payment-form-payment-failed').on('click', function () {
+                if ( response == true ) {
+                    console.log('hurray');
+                }
+            });
+            return false;
+        }
 
         // when book button is clicked --------------------
         $('#dbs-schedule-book').on('click', function (e) {
             e.preventDefault();
+            // open email form
+            $('.dbs-email-form').modal({
+                fadeDuration: 250
+            });
+            /*
             $('.dbs-schedule-errors').empty();
             var times = [];
             $('.dbs-timeslot.selected').each(function () {
@@ -24,10 +61,6 @@
                 'provider_id': $('.dbs-schedule-provider.selected').attr('id'),
                 'times': times
             };
-
-            //console.log(.children('input'));
-            // We can also pass the url value separately from ajaxurl for front end AJAX implementations
-
             jQuery.post(php_vars.ajax_url, data, function (response) {
                 var errors = JSON.parse(response);
                 if (errors.length) {
@@ -36,12 +69,26 @@
                         $('.dbs-schedule-errors').append('<p>' + error + '</p>');
                     }
                 } else {
-                    location.reload();
+                    // for admin area
+                    if ( php_vars.is_admin ) {
+                        // update view to show bookings
+                        location.reload();
+                        if ( getPayment() ) {
+                            // update view to show they're paid
+                            location.reload();
+                        };
+                    // for users/front-end
+                    } else {
+                        if ( getPayment() ) {
+                            // update if payment is successful only
+                            location.reload();
+                        }
+                    }
                 }
             });
-
-            $( document.body ).trigger( 'post-load' );
-
+            // is this necessary?
+            $(document.body).trigger('post-load');
+            */
         });
 
         // update the price field on the schedule ---------
@@ -60,7 +107,7 @@
 
         // toggle selection of timeslot -------------------
         $('.dbs-timeslot').on('click', function () {
-            if ($(this).attr('data-locked') == false && $(this).attr('data-status') == 'open' ) {
+            if ($(this).attr('data-locked') == false && $(this).attr('data-status') == 'open') {
                 var lastSelectedProviderID = $('.dbs-schedule-provider.selected').attr('id');
                 $(this).toggleClass('selected');
                 $('.dbs-schedule-provider').removeClass('selected');

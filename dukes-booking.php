@@ -102,7 +102,9 @@ if (!class_exists('DukesBookingSystem')) {
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'block_price' => DBS_Global::$block_price,
                 'extra_block_discount' => DBS_Global::$extra_block_discount,
-                'booking_url' => site_url() . '/booking'
+                'admin_home' => admin_url('admin.php/?page=dukes-menu'),
+                'booking_url' => site_url() . '/booking',
+                'is_admin' => is_admin()
             ];
             wp_localize_script('admin-functions', 'php_vars', $translation_array);
         }
@@ -117,6 +119,7 @@ if (!class_exists('DukesBookingSystem')) {
             add_submenu_page('dukes-menu', 'Settings', 'Settings', 'manage_options', 'dukes-settings', ['DukesBookingSystem', 'settings_page']);
         }
 
+        // initialize plugin ------------------------------
         static function init()
         {
             require_once(plugin_dir_path(__FILE__) . 'classes/DBS_Global.php');
@@ -129,6 +132,7 @@ if (!class_exists('DukesBookingSystem')) {
             }
         }
 
+        // parse request for booking url ------------------
         static function parse_request(&$wp)
         {
             if (array_key_exists('dbs_booking_page', $wp->query_vars)) {
@@ -138,6 +142,7 @@ if (!class_exists('DukesBookingSystem')) {
             return;
         }
 
+        // update query vars for booking page -------------
         static function query_vars($query_vars)
         {
             $query_vars[] = 'dbs_booking_page';
@@ -145,9 +150,21 @@ if (!class_exists('DukesBookingSystem')) {
             return $query_vars;
         }
 
+        // rewrite rule for booking page in frontend ------
         static function rewrite_rules()
         {
             add_rewrite_rule('^booking/([^/]*)/?', 'index.php?dbs_booking_page=1&date=$matches[1]', 'top');
+        }
+
+        // valid email via ajax ---------------------------
+        static function validate_email() {
+            //echo $_POST['email'];
+            if ( is_email($_POST['email']) ) {
+                echo 'true';
+            } else {
+                echo 'false';
+            }
+            wp_die();
         }
     }
 
@@ -174,4 +191,6 @@ if (!class_exists('DukesBookingSystem')) {
     // ajax actions ---------------------------------------
     add_action('wp_ajax_save_booking', ['DBS_Booking', 'save']);
     add_action('wp_ajax_no_priv_save_booking', ['DBS_Booking', 'save']);
+    add_action('wp_ajax_validate_email', ['DukesBookingSystem', 'validate_email']);
+    add_action('wp_ajax_no_priv_validate_email', ['DukesBookingSystem', 'validate_email']);
 }

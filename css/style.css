@@ -27,6 +27,29 @@
 .not-paid {
 }
 
+/* Email form --------------------------------------------- */
+
+.dbs-email-form {
+    display: none;
+}
+
+.dbs-email-form div {
+    display: flex;
+}
+
+.dbs-email-form input {
+    flex: 3;
+    margin-right: 1rem;
+}
+
+.dbs-email-form button {
+    flex: 1;
+}
+
+.dbs-payment-form {
+    display: none;
+}
+
 .dbs-schedule {
     margin: 1rem 0;
 }
