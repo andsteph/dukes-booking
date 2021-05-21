@@ -13,32 +13,6 @@
         });
 
 
-        function getEmail() {
-
-        }
-
-        $('#dbs-email-save').on('click', function () {
-            var data = {
-                'action': 'validate_email',
-                'email': $('#dbs-email-input').val()
-            };
-            $.post(php_vars.ajax_url, data, function (response) {
-                console.log(response);
-            });
-        });
-
-
-        function getPayment() {
-            $('.dbs-payment-form').modal({
-                fadeDuration: 250
-            });
-            $('#dbs-payment-form-payment-failed').on('click', function () {
-                if ( response == true ) {
-                    console.log('hurray');
-                }
-            });
-            return false;
-        }
 
         // when book button is clicked --------------------
         $('#dbs-schedule-book').on('click', function (e) {
@@ -91,19 +65,36 @@
             */
         });
 
-        // update the price field on the schedule ---------
-        function updateSchedulePrice() {
-            var block_count = $('.dbs-timeslot.selected').length;
-            var price = 0;
-            for (var i = 0; i < block_count; i++) {
-                if (i == 0) {
-                    price += parseFloat(php_vars.block_price);
+        // save button on email form ----------------------
+        $('#dbs-email-save').on('click', function () {
+            var data = {
+                'action': 'validate_email',
+                'email': $('#dbs-email-input').val()
+            };
+            $.post(php_vars.ajax_url, data, function (response) {
+                if ( response == true ) {
+                    console.log('valid email');
+                    $('#dbs-payment-form').modal({
+                        fadeDuration: 250
+                    });
                 } else {
-                    price += parseFloat(php_vars.block_price) * parseFloat(php_vars.extra_block_discount);
+                    console.log('invalid email');
+                    $('dbs-email-form-errors').html('Please enter a valid email address');
                 }
-            }
-            $('#dbs-schedule-price').val(parseFloat(price).toFixed(2));
-        }
+            });
+        });
+
+        var payment_form_result = null;
+
+        // failed payment test button ---------------------
+        $('#dbs-payment-form-failed').on('click', function () {
+            $.modal.close();
+        });
+
+        // successful payment text button -----------------
+        $('#dbs-payment-form-successful').on('click', function() {
+            $.modal.close();
+        });
 
         // toggle selection of timeslot -------------------
         $('.dbs-timeslot').on('click', function () {
@@ -121,7 +112,16 @@
                 if (lastSelectedProviderID !== currentSelectedProviderID) {
                     $('#' + lastSelectedProviderID).find('.dbs-timeslot').removeClass('selected');
                 }
-                updateSchedulePrice();
+                var block_count = $('.dbs-timeslot.selected').length;
+                var price = 0;
+                for (var i = 0; i < block_count; i++) {
+                    if (i == 0) {
+                        price += parseFloat(php_vars.block_price);
+                    } else {
+                        price += parseFloat(php_vars.block_price) * parseFloat(php_vars.extra_block_discount);
+                    }
+                }
+                $('#dbs-schedule-price').val(parseFloat(price).toFixed(2));
             }
         });
 

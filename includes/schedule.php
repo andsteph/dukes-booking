@@ -16,6 +16,7 @@ if (!is_admin()) {
 
 <div class="dbs-email-form">
     <h2>Enter Email Address</h2>
+    <div class="dbs-email-form-errors"></div>
     <div>
         <input type='email' name='email' id='dbs-email-input'>
         <button class="button-primary" id="dbs-email-save">Save</button>
@@ -26,8 +27,8 @@ if (!is_admin()) {
     <h2>Payment Form</h2>
     <p>This is where we go through the payment gateway process. In the admin area, the way this works will vary depending on the gateway. I guess with Stripe and Square, you could use the reader. With other options, we might need to enter their credit card info.</p>
     <div>
-        <button class="button" id="dbs-payment-form-payment-failed">Failed Payment</button>
-        <button class="button-primary" id="dbs-payment-form-payment-successful">Successful Payment</button>
+        <button class="button" id="dbs-payment-form-failed">Failed Payment</button>
+        <button class="button-primary" id="dbs-payment-form-successful">Successful Payment</button>
     </div>
 </div>
 
