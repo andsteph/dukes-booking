@@ -4,7 +4,7 @@ if (empty($_GET)) {
     $_GET = $wp->query_vars;
 }
 $date = date('Y-m-d');
-if (array_key_exists('date', $_GET)) {
+if (array_key_exists('date', $_GET) && $_GET['date'] !== 'today') {
     $date = $_GET['date'];
 }
 if (!is_admin()) {
@@ -14,25 +14,11 @@ if (!is_admin()) {
 }
 ?>
 
-<div class="dbs-email-form">
-    <h2>Enter Email Address</h2>
-    <div class="dbs-email-form-errors"></div>
-    <div>
-        <input type='email' name='email' id='dbs-email-input'>
-        <button class="button-primary" id="dbs-email-save">Save</button>
-    </div>
-</div>
 
-<div class="dbs-payment-form">
-    <h2>Payment Form</h2>
-    <p>This is where we go through the payment gateway process. In the admin area, the way this works will vary depending on the gateway. I guess with Stripe and Square, you could use the reader. With other options, we might need to enter their credit card info.</p>
-    <div>
-        <button class="button" id="dbs-payment-form-failed">Failed Payment</button>
-        <button class="button-primary" id="dbs-payment-form-successful">Successful Payment</button>
-    </div>
-</div>
 
 <div class="dbs-schedule <?php echo $frontend; ?>">
+
+    <div class="dbs-schedule-date-time">Fetching current date/time...</div>
 
     <div class="dbs-schedule-errors"></div>
 
@@ -42,6 +28,10 @@ if (!is_admin()) {
             <div>
                 <label for="dbs-schedule-date">Date:</label>
                 <input type='date' name='date' id='dbs-schedule-date' value='<?php echo $date; ?>'>
+            </div>
+            <div>
+                <label for="dbs-schedule-email">Email:</label>
+                <input type='email' name='email' id='dbs-schedule-email'>
             </div>
             <div>
                 <label for="dbs-schedule-price">Price:</label>

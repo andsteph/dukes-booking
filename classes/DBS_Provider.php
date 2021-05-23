@@ -51,9 +51,6 @@ class DBS_Provider
             $text = 'Open<br>';
             $slot_datetime = strtotime($date . ' '. $time);
             $current_datetime = time();
-            write_log(date('Y-m-d H:i:s', $slot_datetime));
-            write_log(date('Y-m-d H:i:s', $current_datetime));
-            write_log('');
             if ( $slot_datetime < time() ) {
                 $status = 'over';
                 $text = 'Done';

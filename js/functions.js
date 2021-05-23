@@ -1,7 +1,20 @@
 (function ($) {
 
+    // https://stackoverflow.com/questions/2507030/email-validation-using-jquery
+    function isEmail(email) {
+        var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+        return regex.test(email);
+      }
+
     // when window is loaded ------------------------------
     $(window).on('load', function () {
+
+        // time time according to the website
+        var date = new Date(php_vars.date);
+        setInterval(function() {
+            $('.dbs-schedule-date-time').html('<div>' + date.toString() + "</div>");
+            date.setSeconds(date.getSeconds()+1);
+        }, 1000);
 
         // reload schedule when date is changed -----------
         $('#dbs-schedule-date').on('change', function () {
@@ -12,17 +25,15 @@
             }
         });
 
-
-
         // when book button is clicked --------------------
         $('#dbs-schedule-book').on('click', function (e) {
             e.preventDefault();
-            // open email form
-            $('.dbs-email-form').modal({
-                fadeDuration: 250
-            });
-            /*
-            $('.dbs-schedule-errors').empty();
+            var email = $('#dbs-schedule-email').val();
+            if ( !isEmail(email) ) {
+                $('.dbs-schedule-errors').append('<p>Email is not valid.</p>');
+                $('#dbs-schedule-email').focus();
+                return;
+            }
             var times = [];
             $('.dbs-timeslot.selected').each(function () {
                 var time = $(this).children('input').val()
@@ -43,57 +54,11 @@
                         $('.dbs-schedule-errors').append('<p>' + error + '</p>');
                     }
                 } else {
-                    // for admin area
-                    if ( php_vars.is_admin ) {
-                        // update view to show bookings
-                        location.reload();
-                        if ( getPayment() ) {
-                            // update view to show they're paid
-                            location.reload();
-                        };
-                    // for users/front-end
-                    } else {
-                        if ( getPayment() ) {
-                            // update if payment is successful only
-                            location.reload();
-                        }
-                    }
+                    location.reload();
                 }
             });
             // is this necessary?
             $(document.body).trigger('post-load');
-            */
-        });
-
-        // save button on email form ----------------------
-        $('#dbs-email-save').on('click', function () {
-            var data = {
-                'action': 'validate_email',
-                'email': $('#dbs-email-input').val()
-            };
-            $.post(php_vars.ajax_url, data, function (response) {
-                if ( response == true ) {
-                    console.log('valid email');
-                    $('#dbs-payment-form').modal({
-                        fadeDuration: 250
-                    });
-                } else {
-                    console.log('invalid email');
-                    $('dbs-email-form-errors').html('Please enter a valid email address');
-                }
-            });
-        });
-
-        var payment_form_result = null;
-
-        // failed payment test button ---------------------
-        $('#dbs-payment-form-failed').on('click', function () {
-            $.modal.close();
-        });
-
-        // successful payment text button -----------------
-        $('#dbs-payment-form-successful').on('click', function() {
-            $.modal.close();
         });
 
         // toggle selection of timeslot -------------------

@@ -2,12 +2,6 @@
 
 require_once(plugin_dir_path(__FILE__) . '../post-types/dbs_booking.php');
 
-/*
-require_once('DBS_Activity.php');
-require_once('DBS_Customer.php');
-require_once('DBS_Provider.php');
-*/
-
 class DBS_Booking
 {
     // ====================================================
@@ -20,7 +14,7 @@ class DBS_Booking
         add_meta_box('email', 'Email', ['DBS_Booking', 'add_meta_email'], 'dbs_booking', 'normal', 'high');
         add_meta_box('date', 'Date', ['DBS_Booking', 'add_meta_date'], 'dbs_booking', 'normal', 'high');
         add_meta_box('provider', 'Provder', ['DBS_Booking', 'add_meta_provider'], 'dbs_booking', 'normal', 'high');
-        add_meta_box('blocks', 'Blocks', ['DBS_Booking', 'add_meta_blocks'], 'dbs_booking', 'normal', 'high');
+        //add_meta_box('blocks', 'Blocks', ['DBS_Booking', 'add_meta_blocks'], 'dbs_booking', 'normal', 'high');
     }
 
     // meta box for customer email --------------------
@@ -95,9 +89,11 @@ class DBS_Booking
     // add meta box for blocks ----------------------------
     static function add_meta_blocks()
     {
+        /*
         print_r($_GET['date']);
         print_r($_GET['provider_id']);
         print_r($_GET['cells']);
+        */
     }
 
     // get bookings for date ------------------------------
@@ -158,6 +154,7 @@ class DBS_Booking
     static function save()
     {
         $errors = [];
+        // bad emails shouldn't make it to here, but just in case
         if (is_email($_POST['email'])) {
             // build a somewhat readable title
             $date = $_POST['date'];
