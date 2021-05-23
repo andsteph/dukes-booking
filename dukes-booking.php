@@ -48,7 +48,7 @@ if (!class_exists('DukesBookingSystem')) {
             echo '<div class="wrap">';
             echo '<h1>Dukes Booking System</h1>';
             require_once(plugin_dir_path(__FILE__) . 'includes/schedule.php');
-            include plugin_dir_path(__FILE__) . 'DBS_SQuare.php';
+            //include plugin_dir_path(__FILE__) . 'DBS_SQuare.php';
             echo '</div>';
         }
 
@@ -184,4 +184,6 @@ if (!class_exists('DukesBookingSystem')) {
     // ajax actions ---------------------------------------
     add_action('wp_ajax_save_booking', ['DBS_Booking', 'save']);
     add_action('wp_ajax_nopriv_save_booking', ['DBS_Booking', 'save']);
+
+    add_action('admin_post_booking_submit', ['DBS_Booking', 'submit']);
 }

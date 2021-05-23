@@ -14,15 +14,21 @@ if (!is_admin()) {
 }
 ?>
 
-
-
 <div class="dbs-schedule <?php echo $frontend; ?>">
 
     <div class="dbs-schedule-date-time">Fetching current date/time...</div>
 
-    <div class="dbs-schedule-errors"></div>
+    <div class="dbs-schedule-errors">
+        <?php if ( array_key_exists('errors', $_GET) ) : ?>
+            <?php foreach ( $_GET['errors'] as $error ) : ?>
+                <p><?php echo $error; ?></p>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
 
-    <form method="post">
+    <form action="<?php echo admin_url('admin-post.php'); ?>" method="post">
+
+        <input type="hidden" name="action" value="booking_submit">
 
         <div class="dbs-schedule-fields">
             <div>
@@ -37,7 +43,7 @@ if (!is_admin()) {
                 <label for="dbs-schedule-price">Price:</label>
                 <input type="number" step="0.01" id="dbs-schedule-price" value="0.00" readonly>
             </div>
-            <input id="dbs-schedule-book" type="submit" class="button-primary" value="Book" disabled>
+            <input type="submit" class="button-primary" value="Save Booking">
         </div>
 
         <?php $providers = DBS_Provider::get_all(); ?>
@@ -46,7 +52,6 @@ if (!is_admin()) {
                 <?php foreach (DBS_Provider::get_all() as $provider) : ?>
                     <div class='dbs-schedule-provider' id='<?php echo $provider->ID; ?>'>
                         <div class='dbs-schedule-provider-heading'><?php echo $provider->name; ?></div>
-                        <input type="hidden" name="provider_id" value="<?php echo $provider->ID; ?>" readonly>
                         <div class="dbs-schedule-provider-content">
                             <?php $provider->generate_entries($date); ?>
                         </div> <!-- .dbs-schedule-provider-content -->

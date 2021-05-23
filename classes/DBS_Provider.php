@@ -44,7 +44,7 @@ class DBS_Provider
     function generate_entries($date)
     {
         $bookings = DBS_Booking::get_by_date_and_provider($date, $this->ID);
-        foreach (DBS_Global::$valid_times as $time) {
+        foreach (DBS_Global::$valid_times as $index=>$time) {
             $booking = DBS_Booking::bookings_have_time($bookings, $time);
             $status = 'open';
             $locked = false;
@@ -69,7 +69,7 @@ class DBS_Provider
                 }
             }
             echo "<div class='dbs-timeslot $status' data-locked='$locked' data-status='$status'>";
-            echo "<input type='hidden' data-provider_id='$this->ID' value='$time'>";
+            echo "<input type='hidden' name='times[$this->ID][$index]' value='$time' data-status='$status' disabled>";
             echo "<strong>$time</strong><br>";
             echo $text;
             echo '</div>'; // .dbs-timeslot

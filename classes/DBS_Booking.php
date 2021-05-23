@@ -151,6 +151,7 @@ class DBS_Booking
     }
 
     // ajax function to save booking blocks ---------------
+    /* I don't think we'll do it with ajax anymore */
     static function save()
     {
         $errors = [];
@@ -186,6 +187,52 @@ class DBS_Booking
         wp_die();
     }
 
+    // handle the booking form ----------------------------
+    static function submit()
+    {
+        $errors = [];
+        if (!is_email($_POST['email'])) {
+            array_push($errors, 'The email is not valid.');
+        }
+        if (!array_key_exists('times', $_POST)) {
+            array_push($errors, 'Please select at least one time slot.');
+        }
+        $params = [
+            'page' => 'dukes-menu',
+            'date' => $_POST['date']
+        ];
+        if (count($errors) > 0) {
+            $params['errors'] = $errors;
+        } else {
+            // if admin - save booking right away 
+            // if not admin, attempt payment - save booking if payment successful
+            $date = $_POST['date'];
+            $email = $_POST['email'];
+            foreach ($_POST['times'] as $p => $provider) {
+                foreach ($provider as $time) {
+                    $post_title = "$date $p $time $email";
+                    $post_array = [
+                        'post_title' => $post_title,
+                        'post_status' => 'publish',
+                        'post_type' => 'dbs_booking'
+                    ];
+                    print_r($post_array);
+                    $ID = wp_insert_post($post_array, true);
+                    if (gettype($ID) == 'integer') {
+                        update_post_meta($ID, 'date', $date);
+                        update_post_meta($ID, 'email', $email);
+                        update_post_meta($ID, 'provider_id', $p);
+                        update_post_meta($ID, 'time', $time);
+                        update_post_meta($ID, 'paid', "no");
+                    } 
+                }
+            }
+        }
+        $url = admin_url('admin.php') . '?' . http_build_query($params);
+        header("Location: $url");
+        die();
+    }
+
     // ====================================================
     // instance methods 
     // ====================================================
@@ -203,7 +250,6 @@ class DBS_Booking
         $this->time = get_post_meta($post->ID, 'time', true);
         $this->paid = get_post_meta($post->ID, 'paid', false);
         $this->content = $post->post_content;
-        
     }
 
     // render (display) booking information ---------------
