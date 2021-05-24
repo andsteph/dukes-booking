@@ -18,7 +18,9 @@ if (!is_admin()) {
 
 <div class="dbs-schedule <?php echo $frontend; ?>">
 
-    <div class="dbs-schedule-date-time">Fetching current date/time...</div>
+    <p class="dbs-schedule-date-time">Fetching current date/time...</p>
+
+    <p class="dbs-schedule-notes">Note: Sessions are <?php echo DukesBookingSystem::$block_time/60; ?> minutes each.</p>
 
     <div class="dbs-schedule-errors">
         <?php if ( array_key_exists('errors', $_GET) ) : ?>

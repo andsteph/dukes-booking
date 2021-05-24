@@ -218,16 +218,6 @@ if (!class_exists('DukesBookingSystem')) {
     add_filter('query_vars', ['DukesBookingSystem', 'query_vars']);
     add_action('parse_request', ['DukesBookingSystem', 'parse_request']);
 
-    //add_shortcode('dukes_booking_system', ['DukesBookingSystem', 'dbs_shortcode']);
-
-    // ajax actions ---------------------------------------
-    /*
-    add_action('wp_ajax_save_booking', ['DBS_Booking', 'save']);
-    add_action('wp_ajax_nopriv_save_booking', ['DBS_Booking', 'save']);
-    */
-
-    add_action('admin_post_booking_submit', ['DBS_Booking', 'submit']);
-    add_action('admin_post_nopriv_booking_submit', ['DBS_Booking', 'submit']);
-
+    // saving settings page -------------------------------
     add_action('admin_post_settings_submit', ['DukesBookingSystem', 'settings_submit']);
 }

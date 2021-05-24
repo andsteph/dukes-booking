@@ -59,11 +59,7 @@ class DBS_Provider
                 $text = 'Booked<br>';
                 if ( current_user_can('administrator')) {
                     $text = $booking->email . '<br>';
-                    if ( $booking->paid == "yes" ) {
-                        $text .= '<span class="paid">Paid</span>';
-                    } else {
-                        $text .= '<span class="not-paid">Not Paid</span>';
-                    }
+                    $text .= $booking->paid;
                 }
             }
             echo "<div class='dbs-timeslot $status' data-locked='$locked' data-status='$status'>";

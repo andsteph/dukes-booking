@@ -13,14 +13,14 @@ class DBS_Booking
         add_meta_box('date', 'Date', ['DBS_Booking', 'add_meta_date'], 'dbs_booking', 'normal', 'high');
         add_meta_box('provider', 'Provder', ['DBS_Booking', 'add_meta_provider'], 'dbs_booking', 'normal', 'high');
         add_meta_box('time', 'Time', ['DBS_Booking', 'add_meta_time'], 'dbs_booking', 'normal', 'high');
-        //add_meta_box('blocks', 'Blocks', ['DBS_Booking', 'add_meta_blocks'], 'dbs_booking', 'normal', 'high');
+        add_meta_box('payment', 'Payment', ['DBS_Booking', 'add_meta_payment'], 'dbs_booking', 'normal', 'high');
     }
 
     // meta box for customer email --------------------
     static function add_meta_email()
     {
         global $post;
-        $email = get_post_meta( $post->ID, 'email', true );
+        $email = get_post_meta($post->ID, 'email', true);
         echo "<input type='email' name='email' value='$email'>";
     }
 
@@ -52,7 +52,7 @@ class DBS_Booking
     static function add_meta_time()
     {
         global $post;
-        $current_time = get_post_meta( $post->ID, 'time', true );
+        $current_time = get_post_meta($post->ID, 'time', true);
         echo "<select name='time'>";
         foreach (DukesBookingSystem::$valid_times as $time) {
             $selected = '';
@@ -60,6 +60,23 @@ class DBS_Booking
                 $selected = 'selected';
             }
             echo "<option value='$time' $selected>$time</option>";
+        }
+        echo '</select>';
+    }
+
+    // add meta payment -----------------------------------
+    static function add_meta_payment()
+    {
+        global $post;
+        $options = [
+            'unpaid' => 'Unpaid',
+            'creditcard' => 'Paid (credit card)',
+            'debit' => 'Paid (debit)',
+        ];
+        $current_status = get_post_meta($post->ID, 'payment', true);
+        echo "<select name='payment'>";
+        foreach ($options as $key => $value) {
+            echo "<option value='$key'>$value</option>";
         }
         echo '</select>';
     }
@@ -118,6 +135,16 @@ class DBS_Booking
         return false;
     }
 
+    // create title from $_post variables -----------------
+    static function create_title() {
+        $date = $_POST['date'];
+        $provider_id = $_POST['provider_id'];
+        $time = $_POST['time'];
+        $email = $_POST['email'];
+        $post_title = "$date $provider_id $time $email";
+        return $post_title;
+    }
+
     // save/insert booking --------------------------------
     static function save()
     {
@@ -125,23 +152,52 @@ class DBS_Booking
         $email = $_POST['email'];
         foreach ($_POST['times'] as $p => $provider) {
             foreach ($provider as $time) {
-                $post_title = "$date $p $time $email";
                 $post_array = [
-                    'post_title' => $post_title,
                     'post_status' => 'publish',
+                    'post_title' => "$date $email $p $time",
                     'post_type' => 'dbs_booking'
                 ];
-                print_r($post_array);
+                define('DBS_SCHEDULE_SAVE', 1);
                 $ID = wp_insert_post($post_array, true);
-                if (gettype($ID) == 'integer') {
-                    update_post_meta($ID, 'date', $date);
-                    update_post_meta($ID, 'email', $email);
-                    update_post_meta($ID, 'provider_id', $p);
-                    update_post_meta($ID, 'time', $time);
-                    update_post_meta($ID, 'paid', "no");
-                } 
+                update_post_meta($ID, 'date', $date);
+                update_post_meta($ID, 'email', $email);
+                update_post_meta($ID, 'provider_id', $p);
+                update_post_meta($ID, 'time', $time);
             }
         }
+    }
+
+    // save post hook -------------------------------------
+    static function save_post($post_id, $post, $update)
+    {
+        if ( !$update ) {
+            return;
+        }
+        // we'll handle it manually if done from schedule
+        if ( defined('DBS_SCHEDULE_SAVE') ) {
+            return;
+        }
+        // don't do anything if we're deleting
+        if ( $post->post_status == 'trash' ) {
+            return;
+        }
+        // don't do anything if we're updating title 
+        if ( defined('DBS_UPDATING_TITLE') ) {
+            return;
+        }
+        $date = $_POST['date'];
+        $email = $_POST['email'];
+        $provider_id = $_POST['provider_id'];
+        $time = $_POST['time'];
+        $paid = $_POST['paid'];
+        define('DBS_UPDATING_TITLE', 1);
+        $post->post_title = "$date $email $provider_id $time";
+        wp_update_post($post);
+        update_post_meta($post_id, 'date', $date);
+        update_post_meta($post_id, 'email', $email);
+        update_post_meta($post_id, 'provider_id', $provider_id);
+        update_post_meta($post_id, 'time', $time);
+        update_post_meta($post_id, 'paid', $paid);
     }
 
     // handle the booking form ----------------------------
@@ -161,18 +217,22 @@ class DBS_Booking
         if (count($errors) > 0) {
             $params['errors'] = $errors;
         } else {
-            if ( current_user_can('administrator') ) {
+            if (current_user_can('administrator')) {
                 DBS_Booking::save();
             } else {
-
             }
         }
-        if ( $_POST['origin'] == 'admin' ) {
+        if ($_POST['origin'] == 'admin') {
             $url = admin_url('admin.php') . '?' . http_build_query($params);
         } else {
             $url = site_url() . '/booking/today' . '?' . http_build_query($params);
         }
         header("Location: $url");
+    }
+
+    // update meta info (for after saving) ----------------
+    function update_meta()
+    {
     }
 
     // ====================================================
@@ -203,7 +263,10 @@ class DBS_Booking
         echo 'people: ' . $this->people . '<br>';
         echo '<br>';
     }
-
+    
 }
 
 add_action('add_meta_boxes_dbs_booking', ['DBS_Booking', 'add_meta_boxes']);
+add_action('admin_post_booking_submit', ['DBS_Booking', 'submit']);
+add_action('admin_post_nopriv_booking_submit', ['DBS_Booking', 'submit']);
+add_action('save_post_dbs_booking', ['DBS_Booking', 'save_post'], 10, 3);
