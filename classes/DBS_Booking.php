@@ -1,7 +1,5 @@
 <?php
 
-require_once(plugin_dir_path(__FILE__) . '../post-types/dbs_booking.php');
-
 class DBS_Booking
 {
     // ====================================================
@@ -14,6 +12,7 @@ class DBS_Booking
         add_meta_box('email', 'Email', ['DBS_Booking', 'add_meta_email'], 'dbs_booking', 'normal', 'high');
         add_meta_box('date', 'Date', ['DBS_Booking', 'add_meta_date'], 'dbs_booking', 'normal', 'high');
         add_meta_box('provider', 'Provder', ['DBS_Booking', 'add_meta_provider'], 'dbs_booking', 'normal', 'high');
+        add_meta_box('time', 'Time', ['DBS_Booking', 'add_meta_time'], 'dbs_booking', 'normal', 'high');
         //add_meta_box('blocks', 'Blocks', ['DBS_Booking', 'add_meta_blocks'], 'dbs_booking', 'normal', 'high');
     }
 
@@ -21,61 +20,24 @@ class DBS_Booking
     static function add_meta_email()
     {
         global $post;
-        $email = $_GET['email'];
-        echo "<input type='email' name='email' value='$email' readonly>";
-    }
-
-    // customer meta box for booking ------------------
-    static function add_meta_customer_id()
-    {
-        global $post;
-        $new_user_url = site_url() . '/wp-admin/user-new.php';
-        echo "<p><a href='$new_user_url'>New Customer</a></p>";
-        echo "<select name='customer_id' size='10' style='min-width: 300px'>";
-        $user_id = get_post_meta($post->ID, 'customer_id', true);
-        foreach (DBS_Customer::get_all() as $customer) {
-            $selected = '';
-            if ($user_id == $customer->ID) {
-                $selected = 'selected';
-            }
-            $email = $customer->data->user_email;
-            $name = $customer->data->display_name;
-            echo "<option value='$customer->ID' $selected>$email - $name</option>";
-        }
-        echo "</select>";
+        $email = get_post_meta( $post->ID, 'email', true );
+        echo "<input type='email' name='email' value='$email'>";
     }
 
     // date meta box for booking ----------------------
     static function add_meta_date()
     {
-        if (array_key_exists('date', $_GET)) {
-            $current_date = $_GET['date'];
-            $disabled = 'disabled';
-            echo "<input type='hidden' name='date' value='$current_date'>";
-        } else {
-            global $post;
-            $current_date = get_post_meta($post->ID, 'date', true);
-            if ($current_date == '') {
-                $current_date = date('Y-m-d');
-            }
-            $disabled = '';
-        }
-        echo "<input type='date' name='date' value='$current_date' $disabled>";
+        global $post;
+        $date = get_post_meta($post->ID, 'date', true);
+        echo "<input type='date' name='date' value='$date'>";
     }
 
     // provider meta box for booking ------------------
     static function add_meta_provider()
     {
-        if (array_key_exists('provider_id', $_GET)) {
-            $disabled = 'disabled';
-            $current_provider_id = $_GET['provider_id'];
-            echo "<input type='hidden' name='provider_id' value='$current_provider_id'>";
-        } else {
-            global $post;
-            $current_provider_id = get_post_meta($post->ID, 'provider_id', true);
-            $disabled = '';
-        }
-        echo "<select name='provider_id' $disabled>";
+        global $post;
+        $current_provider_id = get_post_meta($post->ID, 'provider_id', true);
+        echo "<select name='provider_id'>";
         foreach (DBS_Provider::get_all() as $provider) {
             $selected = '';
             if ($current_provider_id == $provider->ID) {
@@ -87,13 +49,19 @@ class DBS_Booking
     }
 
     // add meta box for blocks ----------------------------
-    static function add_meta_blocks()
+    static function add_meta_time()
     {
-        /*
-        print_r($_GET['date']);
-        print_r($_GET['provider_id']);
-        print_r($_GET['cells']);
-        */
+        global $post;
+        $current_time = get_post_meta( $post->ID, 'time', true );
+        echo "<select name='time'>";
+        foreach (DukesBookingSystem::$valid_times as $time) {
+            $selected = '';
+            if ($current_time == $time) {
+                $selected = 'selected';
+            }
+            echo "<option value='$time' $selected>$time</option>";
+        }
+        echo '</select>';
     }
 
     // get bookings for date ------------------------------
@@ -150,41 +118,30 @@ class DBS_Booking
         return false;
     }
 
-    // ajax function to save booking blocks ---------------
-    /* I don't think we'll do it with ajax anymore */
+    // save/insert booking --------------------------------
     static function save()
     {
-        $errors = [];
-        // bad emails shouldn't make it to here, but just in case
-        if (is_email($_POST['email'])) {
-            // build a somewhat readable title
-            $date = $_POST['date'];
-            $email = $_POST['email'];
-            $provider_id = $_POST['provider_id'];
-            $errors = [];
-            foreach ($_POST['times'] as $time) {
-                $post_title = "$date $time $email $provider_id";
+        $date = $_POST['date'];
+        $email = $_POST['email'];
+        foreach ($_POST['times'] as $p => $provider) {
+            foreach ($provider as $time) {
+                $post_title = "$date $p $time $email";
                 $post_array = [
                     'post_title' => $post_title,
                     'post_status' => 'publish',
                     'post_type' => 'dbs_booking'
                 ];
+                print_r($post_array);
                 $ID = wp_insert_post($post_array, true);
                 if (gettype($ID) == 'integer') {
                     update_post_meta($ID, 'date', $date);
                     update_post_meta($ID, 'email', $email);
-                    update_post_meta($ID, 'provider_id', $provider_id);
+                    update_post_meta($ID, 'provider_id', $p);
                     update_post_meta($ID, 'time', $time);
                     update_post_meta($ID, 'paid', "no");
-                } else {
-                    array_push($errors, $ID);
-                }
+                } 
             }
-        } else {
-            array_push($errors, 'not a valid email address');
         }
-        echo json_encode($errors);
-        wp_die();
     }
 
     // handle the booking form ----------------------------
@@ -204,33 +161,18 @@ class DBS_Booking
         if (count($errors) > 0) {
             $params['errors'] = $errors;
         } else {
-            // if admin - save booking right away 
-            // if not admin, attempt payment - save booking if payment successful
-            $date = $_POST['date'];
-            $email = $_POST['email'];
-            foreach ($_POST['times'] as $p => $provider) {
-                foreach ($provider as $time) {
-                    $post_title = "$date $p $time $email";
-                    $post_array = [
-                        'post_title' => $post_title,
-                        'post_status' => 'publish',
-                        'post_type' => 'dbs_booking'
-                    ];
-                    print_r($post_array);
-                    $ID = wp_insert_post($post_array, true);
-                    if (gettype($ID) == 'integer') {
-                        update_post_meta($ID, 'date', $date);
-                        update_post_meta($ID, 'email', $email);
-                        update_post_meta($ID, 'provider_id', $p);
-                        update_post_meta($ID, 'time', $time);
-                        update_post_meta($ID, 'paid', "no");
-                    } 
-                }
+            if ( current_user_can('administrator') ) {
+                DBS_Booking::save();
+            } else {
+
             }
         }
-        $url = admin_url('admin.php') . '?' . http_build_query($params);
+        if ( $_POST['origin'] == 'admin' ) {
+            $url = admin_url('admin.php') . '?' . http_build_query($params);
+        } else {
+            $url = site_url() . '/booking/today' . '?' . http_build_query($params);
+        }
         header("Location: $url");
-        die();
     }
 
     // ====================================================
@@ -262,16 +204,6 @@ class DBS_Booking
         echo '<br>';
     }
 
-    // short render of booking info -----------------------
-    function short_render()
-    {
-        $customer = get_user_by('ID', $this->customer_id);
-        $start = $this->time;
-        $end = date('H:i', strtotime($this->time) + DBS_Global::$blocktime);
-        echo $start . '-' . $end;
-        //echo $customer->data->display_name . '<br>';
-        echo '<br>';
-    }
 }
 
 add_action('add_meta_boxes_dbs_booking', ['DBS_Booking', 'add_meta_boxes']);

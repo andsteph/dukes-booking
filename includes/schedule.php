@@ -9,8 +9,10 @@ if (array_key_exists('date', $_GET) && $_GET['date'] !== 'today') {
 }
 if (!is_admin()) {
     $frontend = 'frontend';
+    $origin = 'frontend';
 } else {
     $frontend = '';
+    $origin = 'admin';
 }
 ?>
 
@@ -20,19 +22,22 @@ if (!is_admin()) {
 
     <div class="dbs-schedule-errors">
         <?php if ( array_key_exists('errors', $_GET) ) : ?>
+            <p>
             <?php foreach ( $_GET['errors'] as $error ) : ?>
-                <p><?php echo $error; ?></p>
+                <?php echo $error; ?><br>
             <?php endforeach; ?>
+            </p>
         <?php endif; ?>
     </div>
 
     <form action="<?php echo admin_url('admin-post.php'); ?>" method="post">
 
         <input type="hidden" name="action" value="booking_submit">
+        <input type="hidden" name="origin" value="<?php echo $origin; ?>">
 
         <div class="dbs-schedule-fields">
             <div>
-                <label for="dbs-schedule-date">Date:</label>
+                <label for="dbs-schedule-date">Booking Date:</label>
                 <input type='date' name='date' id='dbs-schedule-date' value='<?php echo $date; ?>'>
             </div>
             <div>

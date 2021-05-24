@@ -1,7 +1,5 @@
 <?php
 
-require_once(plugin_dir_path(__FILE__) . '../post-types/dbs_provider.php');
-
 class DBS_Provider
 {
     // ====================================================
@@ -44,7 +42,7 @@ class DBS_Provider
     function generate_entries($date)
     {
         $bookings = DBS_Booking::get_by_date_and_provider($date, $this->ID);
-        foreach (DBS_Global::$valid_times as $index=>$time) {
+        foreach (DukesBookingSystem::$valid_times as $index=>$time) {
             $booking = DBS_Booking::bookings_have_time($bookings, $time);
             $status = 'open';
             $locked = false;

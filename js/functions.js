@@ -1,6 +1,7 @@
 (function ($) {
 
     // https://stackoverflow.com/questions/2507030/email-validation-using-jquery
+    // *** I might use this
     function isEmail(email) {
         var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
         return regex.test(email);
@@ -12,7 +13,7 @@
         // time time according to the website
         var date = new Date(php_vars.date);
         setInterval(function () {
-            $('.dbs-schedule-date-time').html('<div>' + date.toString() + "</div>");
+            $('.dbs-schedule-date-time').html('<div>Current Date/Time: ' + date.toString() + "</div>");
             date.setSeconds(date.getSeconds() + 1);
         }, 1000);
 
@@ -24,44 +25,6 @@
                 window.location.href = php_vars.booking_url + '/' + $(this).val();
             }
         });
-
-        // when book button is clicked --------------------
-        /*
-        $('#dbs-schedule-book').on('click', function (e) {
-            e.preventDefault();
-            var email = $('#dbs-schedule-email').val();
-            if ( !isEmail(email) ) {
-                $('.dbs-schedule-errors').append('<p>Email is not valid.</p>');
-                $('#dbs-schedule-email').focus();
-                return;
-            }
-            var times = [];
-            $('.dbs-timeslot.selected').each(function () {
-                var time = $(this).children('input').val()
-                times.push(time);
-            });
-            var data = {
-                'action': 'save_booking',
-                'date': $('#dbs-schedule-date').val(),
-                'email': $('#dbs-schedule-email').val(),
-                'provider_id': $('.dbs-schedule-provider.selected').attr('id'),
-                'times': times
-            };
-            jQuery.post(php_vars.ajax_url, data, function (response) {
-                var errors = JSON.parse(response);
-                if (errors.length) {
-                    for (var i = 0; i < errors.length; i++) {
-                        var error = errors[i];
-                        $('.dbs-schedule-errors').append('<p>' + error + '</p>');
-                    }
-                } else {
-                    location.reload();
-                }
-            });
-            // is this necessary?
-            $(document.body).trigger('post-load');
-        });
-        */
 
         // toggle selection of timeslot -------------------
         $('.dbs-timeslot').on('click', function () {

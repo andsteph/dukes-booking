@@ -29,14 +29,26 @@ if (!function_exists('write_log')) {
 
 if (!class_exists('DukesBookingSystem')) {
 
+    include plugin_dir_path(__FILE__) . 'post-types/dbs_booking.php';
+    include plugin_dir_path(__FILE__) . 'classes/DBS_Booking.php';
+    include plugin_dir_path(__FILE__) . 'post-types/dbs_provider.php';
+    include plugin_dir_path(__FILE__) . 'classes/DBS_Provider.php';
+
     // ====================================================
     // main class for plugin
     // ====================================================
 
     class DukesBookingSystem
     {
-
-        static $testvar = 'hello';
+        static $version = '0.1';
+        static $timezone = 'America/Toronto';
+        static $start_time;
+        static $end_time;
+        static $block_time;
+        static $buffer_time;
+        static $block_price;
+        static $extra_block_discount;
+        static $valid_times = [];
 
         // ================================================
         // admin pages
@@ -47,7 +59,7 @@ if (!class_exists('DukesBookingSystem')) {
         {
             echo '<div class="wrap">';
             echo '<h1>Dukes Booking System</h1>';
-            require_once(plugin_dir_path(__FILE__) . 'includes/schedule.php');
+            include plugin_dir_path(__FILE__) . 'includes/schedule.php';
             //include plugin_dir_path(__FILE__) . 'DBS_SQuare.php';
             echo '</div>';
         }
@@ -57,7 +69,27 @@ if (!class_exists('DukesBookingSystem')) {
         {
             echo '<div class="wrap">';
             echo '<h1>Duke Booking Settings</h1>';
+            $start_time = get_option('dbs_start_time');
+            $end_time = get_option('dbs_end_time');
+            $block_time = get_option('dbs_block_time');
+            $buffer_time = get_option('dbs_buffer_time');
+            $block_price = get_option('dbs_block_price');
+            $extra_block_discount = get_option('dbs_extra_block_discount');
+            include plugin_dir_path(__FILE__) . 'admin/settings.php';
             echo '</div>';
+        }
+
+        // submit/save settings ---------------------------
+        static function settings_submit()
+        {
+            update_option('dbs_start_time', $_POST['start_time']);
+            update_option('dbs_end_time', $_POST['end_time']);
+            update_option('dbs_block_time', $_POST['block_time']);
+            update_option('dbs_buffer_time', $_POST['buffer_time']);
+            update_option('dbs_block_price', $_POST['block_price']);
+            update_option('dbs_extra_block_discount', $_POST['extra_block_discount']);
+            $url = admin_url('admin.php') . '/?page=dukes-settings';
+            header("Location: $url");
         }
 
         // ================================================
@@ -67,7 +99,8 @@ if (!class_exists('DukesBookingSystem')) {
         static function booking_page()
         {
             get_header();
-            require_once(plugin_dir_path(__FILE__) . 'includes/schedule.php');
+            echo '<h1>Booking</h1>';
+            include plugin_dir_path(__FILE__) . 'includes/schedule.php';
             get_footer();
         }
 
@@ -99,11 +132,11 @@ if (!class_exists('DukesBookingSystem')) {
 
             //wp_enqueue_script('jquery-modal', plugins_url('node_modules/jquery-modal/jquery.modal.min.js', __FILE__), array('jquery'));
             //wp_enqueue_script('dialogs', plugins_url('js/dialogs.js', __FILE__),array('jquery','jquery-modal'));
-            wp_enqueue_script('functions', plugins_url('js/functions.js', __FILE__),array('jquery'));
+            wp_enqueue_script('functions', plugins_url('js/functions.js', __FILE__), array('jquery'));
             $translation_array = [
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'block_price' => DBS_Global::$block_price,
-                'extra_block_discount' => DBS_Global::$extra_block_discount,
+                'block_price' => DukesBookingSystem::$block_price,
+                'extra_block_discount' => DukesBookingSystem::$extra_block_discount,
                 'admin_home' => admin_url('admin.php/?page=dukes-menu'),
                 'booking_url' => site_url() . '/booking',
                 'is_admin' => is_admin(),
@@ -116,8 +149,7 @@ if (!class_exists('DukesBookingSystem')) {
         static function admin_menu()
         {
             add_menu_page('Dukes Booking System', 'Dukes Booking System', 'manage_options', 'dukes-menu', ['DukesBookingSystem', 'home_page']);
-            //add_submenu_page('dukes-menu', 'Bookings', 'Bookings', 'manage_options', 'edit.php?post_type=dbs_booking');
-            add_submenu_page('dukes-menu', 'Activities', 'Activities', 'manage_options', 'edit.php?post_type=dbs_activity');
+            add_submenu_page('dukes-menu', 'Bookings', 'Bookings', 'manage_options', 'edit.php?post_type=dbs_booking');
             add_submenu_page('dukes-menu', 'Providers', 'Providers', 'manage_options', 'edit.php?post_type=dbs_provider');
             add_submenu_page('dukes-menu', 'Settings', 'Settings', 'manage_options', 'dukes-settings', ['DukesBookingSystem', 'settings_page']);
         }
@@ -125,10 +157,6 @@ if (!class_exists('DukesBookingSystem')) {
         // initialize plugin ------------------------------
         static function init()
         {
-            require_once(plugin_dir_path(__FILE__) . 'classes/DBS_Global.php');
-            require_once(plugin_dir_path(__FILE__) . 'classes/DBS_Booking.php');
-            require_once(plugin_dir_path(__FILE__) . 'classes/DBS_Customer.php');
-            require_once(plugin_dir_path(__FILE__) . 'classes/DBS_Provider.php');
             if (get_option('myplugin_flush_rewrite_rules_flag')) {
                 flush_rewrite_rules();
                 delete_option('myplugin_flush_rewrite_rules_flag');
@@ -158,7 +186,18 @@ if (!class_exists('DukesBookingSystem')) {
         {
             add_rewrite_rule('^booking/([^/]*)/?', 'index.php?dbs_booking_page=1&date=$matches[1]', 'top');
         }
+    }
 
+    DukesBookingSystem::$start_time = strtotime(get_option('dbs_start_time'));
+    DukesBookingSystem::$end_time = strtotime(get_option('dbs_end_time'));
+    DukesBookingSystem::$block_time = get_option('dbs_block_time') * 60;
+    DukesBookingSystem::$buffer_time = get_option('dbs_buffer_time') * 60;
+    DukesBookingSystem::$block_price = get_option('dbs_block_price');
+    DukesBookingSystem::$extra_block_discount = get_option('dbs_extra_block_discount') / 100;
+
+    for ($i = DukesBookingSystem::$start_time; $i < DukesBookingSystem::$end_time; $i += DukesBookingSystem::$block_time + DukesBookingSystem::$buffer_time) {
+        $time = date('H:i', $i);
+        array_push(DukesBookingSystem::$valid_times, $time);
     }
 
     // on plugin activation -------------------------------
@@ -182,8 +221,13 @@ if (!class_exists('DukesBookingSystem')) {
     //add_shortcode('dukes_booking_system', ['DukesBookingSystem', 'dbs_shortcode']);
 
     // ajax actions ---------------------------------------
+    /*
     add_action('wp_ajax_save_booking', ['DBS_Booking', 'save']);
     add_action('wp_ajax_nopriv_save_booking', ['DBS_Booking', 'save']);
+    */
 
     add_action('admin_post_booking_submit', ['DBS_Booking', 'submit']);
+    add_action('admin_post_nopriv_booking_submit', ['DBS_Booking', 'submit']);
+
+    add_action('admin_post_settings_submit', ['DukesBookingSystem', 'settings_submit']);
 }
