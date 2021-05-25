@@ -27,6 +27,28 @@
 .not-paid {
 }
 
+.dbs-form {
+    padding: 0.5rem;
+}
+.dbs-form-row {
+    padding: 0.5rem 0;
+}
+.dbs-form-row-column {
+    flex: 1;
+}
+.dbs-form-row label {
+    margin-right: 0.5rem;
+}
+.dbs-form-row input {
+    margin-right: 0.5rem;
+}
+#dbs-expiration {
+    width: 50px;
+}
+#dbs-ccv {
+    width: 50px;
+}
+
 .dbs-schedule {
     margin: 1rem 0;
 }
@@ -63,7 +85,6 @@
 }
 
 .dbs-schedule-providers {
-    display: flex;
     margin-left: -0.25rem;
     margin-right: -0.25rem;
 }
@@ -112,3 +133,17 @@
     color: var(--selected-fg);
 }
 
+
+
+@media (min-width: 1024px) {
+
+    .dbs-form-row {
+        align-items: center;
+        display: flex;
+    }
+
+    .dbs-schedule-providers {
+        display: flex;
+    }
+
+}

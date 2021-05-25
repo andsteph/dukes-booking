@@ -42,24 +42,27 @@ class DBS_Provider
     function generate_entries($date)
     {
         $bookings = DBS_Booking::get_by_date_and_provider($date, $this->ID);
+        $current_datetime = date('Y-m-d H:i:s');
         foreach (DukesBookingSystem::$valid_times as $index=>$time) {
             $booking = DBS_Booking::bookings_have_time($bookings, $time);
             $status = 'open';
             $locked = false;
             $text = 'Open<br>';
-            $slot_datetime = strtotime($date . ' '. $time);
-            $current_datetime = time();
-            if ( $slot_datetime < time() ) {
+            $slot_datetime = date('Y-m-d H:i:s', strtotime("$date $time"));
+            if ( $slot_datetime < $current_datetime ) {
                 $status = 'over';
                 $text = 'Done';
+                write_log($slot_datetime);
+                write_log($current_datetime);
+                write_log('');
             }
             if ( $booking ) {
                 $status = 'booked';
                 $locked = true;
                 $text = 'Booked<br>';
-                if ( current_user_can('administrator')) {
+                if ( is_admin() && current_user_can('administrator')) {
                     $text = $booking->email . '<br>';
-                    $text .= $booking->paid;
+                    $text .= $booking->payment;
                 }
             }
             echo "<div class='dbs-timeslot $status' data-locked='$locked' data-status='$status'>";

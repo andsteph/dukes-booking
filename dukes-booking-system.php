@@ -51,6 +51,16 @@ if (!class_exists('DukesBookingSystem')) {
         static $valid_times = [];
 
         // ================================================
+        // test pages
+        // ================================================
+
+        static function cctest()
+        {
+            include plugin_dir_path(__FILE__) . 'includes/credit-card.php';
+            die();
+        }
+
+        // ================================================
         // admin pages
         // ================================================
 
@@ -60,7 +70,6 @@ if (!class_exists('DukesBookingSystem')) {
             echo '<div class="wrap">';
             echo '<h1>Dukes Booking System</h1>';
             include plugin_dir_path(__FILE__) . 'includes/schedule.php';
-            //include plugin_dir_path(__FILE__) . 'DBS_SQuare.php';
             echo '</div>';
         }
 
@@ -169,6 +178,9 @@ if (!class_exists('DukesBookingSystem')) {
             if (array_key_exists('dbs_booking_page', $wp->query_vars)) {
                 DukesBookingSystem::booking_page();
                 exit();
+            } elseif (array_key_exists('dbs_cctest', $wp->query_vars)) {
+                DukesBookingSystem::cctest();
+                exit();
             }
             return;
         }
@@ -178,6 +190,7 @@ if (!class_exists('DukesBookingSystem')) {
         {
             $query_vars[] = 'dbs_booking_page';
             $query_vars[] = 'date';
+            $query_vars[] = 'dbs_cctest';
             return $query_vars;
         }
 
@@ -185,8 +198,11 @@ if (!class_exists('DukesBookingSystem')) {
         static function rewrite_rules()
         {
             add_rewrite_rule('^booking/([^/]*)/?', 'index.php?dbs_booking_page=1&date=$matches[1]', 'top');
+            add_rewrite_rule('^cctest', 'index.php?dbs_cctest=1', 'top');
         }
     }
+
+    date_default_timezone_set(DukesBookingSystem::$timezone);
 
     DukesBookingSystem::$start_time = strtotime(get_option('dbs_start_time'));
     DukesBookingSystem::$end_time = strtotime(get_option('dbs_end_time'));

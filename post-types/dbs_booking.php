@@ -32,6 +32,11 @@ function dbs_booking_init() {
 			'parent_item_colon'     => __( 'Parent Booking:', 'dukes-booking' ),
 			'menu_name'             => __( 'Bookings', 'dukes-booking' ),
 		),
+        'capability_type'       => 'post',
+        'capabilities'          => [
+            'create_posts'      => 'do_not_allow'
+        ],
+        'map_meta_cap'          => false,
 		'public'                => true,
 		'hierarchical'          => false,
 		'show_ui'               => true,
