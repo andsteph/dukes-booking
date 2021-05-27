@@ -21,6 +21,11 @@
     box-sizing: border-box;
 }
 
+label {
+    font-weight: 600;
+    margin: 0 0.5rem 0 0 !important;
+}
+
 .paid {
 }
 
@@ -74,9 +79,7 @@
 }
 
 .dbs-schedule-fields label {
-    font-size: 600;
-    margin-right: 0.5rem;
-    vertical-align: middle;
+
 }
 
 .dbs-schedule-fields input {
@@ -105,6 +108,24 @@
 
 .dbs-schedule-provider-content {
     margin-top: -0.25rem;
+}
+
+.dbs-schedule-price {
+    text-align: left;
+}
+
+.dbs-schedule-price th {
+    padding-right: 1rem;
+}
+
+.dbs-schedule-price-total {
+    text-transform: uppercase;
+}
+
+.dbs-schedule-price-total th,
+.dbs-schedule-price-total td {
+    border-top: 1px solid black;
+    padding-top: 0.5rem;
 }
 
 .dbs-timeslot {

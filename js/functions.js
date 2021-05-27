@@ -36,15 +36,25 @@
                 });
             }
             var block_count = $('.dbs-timeslot.selected').length;
-            var price = 0;
-            for (var i = 0; i < block_count; i++) {
-                if (i == 0) {
-                    price += parseFloat(php_vars.block_price);
-                } else {
-                    price += parseFloat(php_vars.block_price) * parseFloat(php_vars.extra_block_discount);
-                }
+            var full_price = 0;
+            var discount_price = 0;
+            var tax = 0;
+            var total = 0;
+            if ( block_count > 0 ) {
+                full_price = php_vars.block_price;
+                var text = '(1 x $' + parseFloat(php_vars.block_price).toFixed(2) + ') = $' + parseFloat(full_price).toFixed(2);
+                $('#dbs-schedule-price-full').text(text);
             }
-            $('#dbs-schedule-price').val(parseFloat(price).toFixed(2));
+            if ( block_count > 1 ) {
+                discount_price = (block_count - 1) * php_vars.block_price * php_vars.extra_block_discount;
+                var text = '(' + parseInt(block_count-1) + ' @ ' + php_vars.extra_block_discount*100 + '% off) = $' + parseFloat(discount_price).toFixed(2);
+                $('#dbs-schedule-price-discount').text(text);
+            }
+            tax = (+full_price + +discount_price) * php_vars.tax; // *** shouldn't hard code this
+            $('#dbs-schedule-price-tax').text('$' + parseFloat(tax).toFixed(2));
+            total = +full_price + +discount_price + +tax;
+            $('#dbs-schedule-price-total').text('$' + parseFloat(total).toFixed(2));
+
         });
 
     });

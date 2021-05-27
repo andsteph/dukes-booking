@@ -42,14 +42,8 @@ if (!is_admin()) {
                 <label for="dbs-schedule-date">Booking Date:</label>
                 <input type='date' name='date' id='dbs-schedule-date' value='<?php echo $date; ?>'>
             </div>
-            <div class="dbs-form-row-column">
-                <label for="dbs-schedule-price">Price:</label>
-                <input type="number" step="0.01" id="dbs-schedule-price" value="0.00" readonly>
-            </div>
-            <div class="dbs-form-row-column">
-                <label for="dbs-schedule-email">Email:</label>
-                <input type='email' name='email' id='dbs-schedule-email'>
-            </div>
+
+
         </div>
 
         <?php $providers = DBS_Provider::get_all(); ?>
@@ -69,24 +63,35 @@ if (!is_admin()) {
             <p>You don't have any providers set up. You can do that <a href='<?php echo $new_provider_url; ?>'>here</a>.</p>
         <?php endif; ?>
 
-        <h2>Credit Card</h2>
+        <table class="dbs-schedule-price">
+            <tr><th>Full Price:</th><td id="dbs-schedule-price-full">$0.00</td></tr>
+            <tr><th>Discounted Price:</th><td id="dbs-schedule-price-discount">$0.00</td></tr>
+            <tr><th>Tax (<?php echo DukesBookingSystem::$tax * 100; ?>%):</th><td id="dbs-schedule-price-tax">$0.00</td></tr>
+            <tr class="dbs-schedule-price-total"><th>Total:</th><td id="dbs-schedule-price-total">$0.00</td></tr>
+        </table>
 
         <div class="dbs-form-row">
-            <div class="dbs-form-row-column">
+            <label for="dbs-schedule-email">Enter your email:</label>
+            <input type='email' name='email' id='dbs-schedule-email'>
+        </div>
+
+        <?php if (!is_admin() && !current_user_can('administrator')) : ?>
+            <div><strong>Credit Card</strong></div>
+            <div class="dbs-form-row">
                 <label for="dbs-name">Name:</label>
                 <input name="name" id="dbs-name">
             </div>
-            <div class="dbs-form-row-column">
+            <div class="dbs-form-row">
                 <label for="dbs-number">Card #:</label>
                 <input name="number" id="dbs-number" placeholder="#### #### #### ####">
             </div>
-            <div class="dbs-form-row-column">
+            <div class="dbs-form-row">
                 <label for="dbs-expiration">Expiration:</label>
                 <input name="expiration" id="dbs-expiration" placeholder="MM/YY">
                 <label for="dbs-ccv">CCV:</label>
                 <input name="ccv" id="dbs-ccv" placeholder="###">
             </div>
-        </div>
+        <?php endif; ?>
 
         <div class="dbs-form-row">
             <input type="submit" class="button-primary" value="Confirm">

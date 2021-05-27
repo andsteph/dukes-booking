@@ -49,6 +49,24 @@ class DBS_Booking
         return $bookings;
     }
 
+    // get by meta_query ----------------------------------
+    static function get_by_meta($meta_query)
+    {
+        $bookings = [];
+        $args = [
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'post_type' => 'dbs_booking',
+            'meta_query' => $meta_query
+        ];
+        $query = new WP_Query($args);
+        foreach ($query->posts as $post) {
+            $booking = new DBS_Booking($post->ID);
+            array_push($bookings, $booking);
+        }
+        return $bookings;
+    }
+
     // does a list of bookings match time? ----------------
     static function bookings_have_time($bookings, $time)
     {
@@ -60,15 +78,51 @@ class DBS_Booking
         return false;
     }
 
+    // send confirmation email ----------------------------
+    static function confirmation_email($confirmation)
+    {
+        $meta_query = [
+            ['key' => 'confirmation', 'value' => $confirmation, 'compare' => '='],
+        ];
+        $bookings = DBS_Booking::get_by_meta($meta_query);
+        if (count($bookings) > 0) {
+            add_filter('wp_mail_content_type', ['DukesBookingSystem', 'wp_mail_content_type']);
+            $email = $bookings[0]->email;
+            $date = $bookings[0]->date;
+            $site_name = get_bloginfo('name');
+            $subject = $site_name . ' booking confirmation';
+            $message = "
+                <h1>$site_name Booking Confirmation</h1>
+                <p>Thank you for booking with $site_name!.</p>
+                <p>Here are the details for your booking(s):</p>
+                <p>Confirmation: $confirmation</p>
+                <p>Date: $date</p>";
+            foreach ( $bookings as $booking ) {
+                $provider = new DBS_Provider($booking->provider_id);
+                $message .= "
+                    <p>
+                        $provider->name<br>
+                        $booking->time
+                    </p>";
+            }
+            write_log($email);
+            write_log($subject);
+            write_log($message);
+            $result = wp_mail($email, $subject, $message);
+            remove_filter('wp_mail_content_type', ['DukesBookingSystem', 'wp_mail_content_type']);
+        }
+    }
+
     // save/insert bookings -------------------------------
-    static function save($payment='unpaid')
+    static function save($payment = 'unpaid')
     {
         $date = $_POST['date'];
         $email = $_POST['email'];
+        $confirmation = substr(md5(uniqid(rand(), true)), 16, 16);
         foreach ($_POST['times'] as $p => $provider) {
             foreach ($provider as $time) {
                 $post_array = [
-                    'post_name' => "$date_$email_$p_$time",
+                    'post_name' => "$date-$email-$p-$time",
                     'post_status' => 'publish',
                     'post_title' => "$date $email $p $time",
                     'post_type' => 'dbs_booking'
@@ -79,8 +133,10 @@ class DBS_Booking
                 update_post_meta($ID, 'provider_id', $p);
                 update_post_meta($ID, 'time', $time);
                 update_post_meta($ID, 'payment', $payment);
+                update_post_meta($ID, 'confirmation', $confirmation);
             }
         }
+        DBS_Booking::confirmation_email($confirmation);
     }
 
     // handle the booking form ----------------------------
@@ -100,14 +156,12 @@ class DBS_Booking
         if (count($errors) > 0) {
             $params['errors'] = $errors;
         } else {
-            include plugin_dir_path(__FILE__) . '../includes/credit-card.php';
-            die();
             if (is_admin() && current_user_can('administrator')) {
                 DBS_Booking::save();
             } else {
-                // get payment first 
-                // DBS_Booking::save()
-
+                if (DukesBookingSystem::submit_payment()) {
+                    DBS_Booking::save('paid (credit card)');
+                }
             }
         }
         if ($_POST['origin'] == 'admin') {
@@ -135,6 +189,7 @@ class DBS_Booking
         $this->time = get_post_meta($post->ID, 'time', true);
         $this->payment = get_post_meta($post->ID, 'payment', true);
         $this->content = $post->post_content;
+        $this->confirmation = get_post_meta($post->ID, 'confirmation', true);
     }
 
     // render (display) booking information ---------------
@@ -146,7 +201,6 @@ class DBS_Booking
         echo 'people: ' . $this->people . '<br>';
         echo '<br>';
     }
-    
 }
 
 add_action('admin_post_booking_submit', ['DBS_Booking', 'submit']);

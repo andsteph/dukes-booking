@@ -24,7 +24,11 @@
             </tr>
             <tr>
                 <th scope="row"><label for="dbs-extra-block-discount">Extra Block Discount (%)</label></th>
-                <td><input type="number" step="1" min="0" name="extra_block_discount" id="dbs-extra-block-discount" value="<?php echo $extra_block_discount; ?>"></td>
+                <td><input type="number" step="1" min="0" max="100" name="extra_block_discount" id="dbs-extra-block-discount" value="<?php echo $extra_block_discount; ?>"></td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="dbs-tax">Tax (%)</label></th>
+                <td><input type="number" step="1" min="0" max="100" name="tax" id="dbs-tax" value="<?php echo $tax; ?>"></td>
             </tr>
         </tbody>
     </table>
